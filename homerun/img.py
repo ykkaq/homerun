@@ -1,7 +1,9 @@
 # “Ç‚İ‚Ş‰æ‘œ‚ğ‚Ü‚Æ‚ß‚½py
 
 import pygame
-from homerun import screen
+from homerun import screen,screenHeight
+from sansho import * 
+import moveBall
 
 # ‰æ‘œ“Ç‚İ‚İ
 ground = pygame.image.load("pct/ground.png").convert()
@@ -10,13 +12,25 @@ pitcher = pygame.transform.smoothscale(pitcher, (122, 150)) #orgnSize = 732*800
 ball = pygame.image.load("pct/baseball_ball.png").convert_alpha()
 ball = pygame.transform.smoothscale(ball, (20, 20))
 bat = pygame.image.load("pct/sport_baseball_bat.png").convert_alpha()
-bat = pygame.transform.rotozoom(bat, -55 ,0.22) #orgnSize = 479*610
+bat = pygame.transform.rotozoom(bat, 0 , 0.3)
 
-ball_rect = ball.get_rect()
+batLeng = bat.get_width()/2
 
-# ‰æ‘œˆÚ“®
-def disp(screen, ballC, curse):
+## memo: ƒoƒbƒg‚Í-135 to 45
+
+def dispBase():
   screen.blit(ground,[0,0])
   screen.blit(pitcher,[550,10])
-  screen.blit(bat,[curse.x,curse.y])
-  screen.blit(ball,[ballC.x,ballC.y]) 
+
+def dispBat(batGrip: coordinate, angel):
+  batRotate = pygame.transform.rotate(bat, angel)
+  batRect = batRotate.get_rect(center = (batGrip.x, batGrip.y))
+  screen.blit(batRotate, batRect)
+
+def dispBall(ballCenter: coordinate):
+  ballCenter = moveBall.sample(ballCenter)
+  ballRect = ball.get_rect(center = (ballCenter.x, ballCenter.y))
+  #ballRect.center = (ballCenter.x, ballCenter.y)
+  screen.blit(ball, ballRect)
+  pygame.draw.rect(screen,(0,80,0),ballRect,1)
+  pygame.draw.circle(screen, 'orange', ballRect.center, 2, width = 0)

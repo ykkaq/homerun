@@ -6,14 +6,16 @@
 '''
 
 import pygame
-from pygame import image
 from pygame.locals import *
 import sys
+import numpy as np
+import time
 import os
+from multiprocessing import Pool
 
 import collision
 import img
-from sansho import coordinate
+from sansho import *
 
 # 初期化とか
 screenWidth = 1200 #画面横
@@ -26,7 +28,8 @@ def main():
 
   ## 変数宣言
   curse = coordinate(500,650) #マウス座標
-  ballC = coordinate(600,0) #ボール座標
+  ballCenterPosition = coordinate(600,0) #ボール座標
+  batDeg = 0
 
   pygame.display.set_caption("テスト") #ウィンドウネーム指定
   clock = pygame.time.Clock() #画面更新頻度
@@ -41,71 +44,81 @@ def main():
 
 
   ## while内使用変数
-  owl_plus = True
-  owl_count = [0,-5,5]
-  owl_vari = 20
-  font = pygame.font.Font(None, 100)  #　文字フォント
-
+  fnt = [pygame.font.Font(None, 50)] #　文字フォント
+  txt = []
+  thp = ""
+  thit = ""
 
   ## 画面更新
   while True:
     pygame.display.update()
     clock.tick(60)
+    img.dispBase()
 
-    img.disp(screen, ballC, curse)
+    batDeg = (batDeg + 1) % 360
+
 
     for event in pygame.event.get():
+      ## バツボタン
       if event.type == pygame.QUIT:
         pygame.quit()
         sys.exit()
+      ## マウス右クリ
+      if event.type == MOUSEBUTTONDOWN and event.button == 1:
+        tmc = fnt[0].render("Mouse Crick!", True, (0,0,0))
+        screen.blit(tmc, [0,0])
       if event.type == MOUSEMOTION:
         curse.x,curse.y = event.pos
       if event.type == KEYDOWN:
         if event.key == K_ESCAPE:
           pygame.quit()
           sys.exit()
-    
+
 
     ## 当たり判定
     ### バット
-    batGripEnd = coordinate(curse.x, curse.y + img.bat.get_height() /2)
-    pygame.draw.line(screen, 'White', (batGripEnd.x, batGripEnd.y), (batGripEnd.x + img.bat.get_width(), batGripEnd.y),5)
+    batGrip = coordinate(curse.x, curse.y)
+    batEndPoint = coordinate(curse.x + img.batLeng, curse.y)
+    G2Evec = collision.generateVector(batEndPoint, batGrip)
+    G2ERotate = (rotate(-1*batDeg) * G2Evec.T)
+    batEnd = crd2mat(batGrip) + G2ERotate.T
+    batEnd = mat2crd(batEnd)
 
     ### ボール
-    ballCenterPosition = coordinate(ballC.x + img.ball.get_width()/2 , ballC.y + img.ball.get_height()/2)
     ballRadius = img.ball.get_width()/2
-    pygame.draw.circle(screen, 'Red', (ballCenterPosition.x, ballCenterPosition.y), ballRadius ,width = 3)
+    
 
-    ### 本文
+    ### 当たり判定.main
+    if(collision.collision(ballCenterPosition, ballRadius, batGrip, batEnd)):
+      # バットに当たった位置
+      hitPoint = collision.hitPoint(ballCenterPosition, batGrip, batEnd)
+      thp = str(hitPoint)
+      time.sleep(0.5)
+      # 文字表示
+      thit = "HIT"
+    else:
+      thit = ""
 
-
-
-    ## 文字表示
-
-    text = font.render("HIT", True, (0,0,0))
-    screen.blit(text, [0, 0])# 文字列の表示位置
-
+    txt.append(fnt[0].render(thp, True, (0,0,0)))
+    txt.append(fnt[0].render(thit, True, (0,0,0)))
 
     ## 座標変更
     ### ボール
-    '''
-    if(owl_plus):
-      ball.x+=owl_vari
-      owl_count[0]+=1
-    else:
-      ball.x-=owl_vari
-      owl_count[0]-=1
-    if(owl_count[0]==owl_count[1]):
-      owl_plus=True
-    if(owl_count[0]==owl_count[2]):
-      owl_plus=False
-    '''
-    
-    ballC.y = (ballC.y + 5) % screenHeight
     #img.ball.top = (img.ball.top+5) % screenHeight
 
-    print(curse.x,curse.y)
-    print()
+    tms = str(curse.x)+" , "+str(curse.y)
+    txt.append(fnt[0].render(tms, True, (0,0,0)))
+    txt.append(fnt[0].render(str(batDeg), True, (0,0,0)))
+    # 表示
+    img.dispBat(batGrip, batDeg) 
+    img.dispBall(ballCenterPosition)
+    pygame.draw.line(screen, 'White', (batGrip.x, batGrip.y), (batEnd.x, batEnd.y)  ,5)
+    pygame.draw.circle(screen, 'Red', (ballCenterPosition.x, ballCenterPosition.y), ballRadius ,width = 3)
+    pygame.draw.circle(screen, 'Pink', (ballCenterPosition.x, ballCenterPosition.y), 2, width = 0)
+    
+    for i,t in enumerate(txt):
+      screen.blit(t, [0,i*50])
+    txt = []
 
 
         
