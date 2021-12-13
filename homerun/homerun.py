@@ -13,9 +13,11 @@ import time
 import os
 from multiprocessing import Pool
 
-import collision
 import img
+import moveBall
+import collision
 from sansho import *
+
 
 # 初期化とか
 screenWidth = 1200 #画面横
@@ -29,7 +31,11 @@ def main():
   ## 変数宣言
   curse = coordinate(500,650) #マウス座標
   ballCenterPosition = coordinate(600,0) #ボール座標
-  batDeg = 0
+  mouseRightClick = False
+  minBatDeg = -100
+  maxBatDeg = 135
+  batDeg = minBatDeg
+
 
   pygame.display.set_caption("テスト") #ウィンドウネーム指定
   clock = pygame.time.Clock() #画面更新頻度
@@ -55,8 +61,6 @@ def main():
     clock.tick(60)
     img.dispBase()
 
-    batDeg = (batDeg + 1) % 360
-
 
     for event in pygame.event.get():
       ## バツボタン
@@ -67,12 +71,26 @@ def main():
       if event.type == MOUSEBUTTONDOWN and event.button == 1:
         tmc = fnt[0].render("Mouse Crick!", True, (0,0,0))
         screen.blit(tmc, [0,0])
+        mouseRightClick = True
+      if event.type == MOUSEBUTTONUP and event.button == 1:
+        mouseRightClick = False
+
+      # マウスカーソル
       if event.type == MOUSEMOTION:
         curse.x,curse.y = event.pos
+      # キー
       if event.type == KEYDOWN:
         if event.key == K_ESCAPE:
           pygame.quit()
           sys.exit()
+
+
+    ## バット操作
+    batRotateSpeed = 20
+    if(mouseRightClick):
+      batDeg = batDeg + batRotateSpeed if batDeg < maxBatDeg else maxBatDeg
+    else:
+      batDeg = minBatDeg
 
 
     ## 当たり判定
@@ -104,17 +122,20 @@ def main():
 
     ## 座標変更
     ### ボール
+    ballCenterPosition = moveBall.sample(ballCenterPosition)
     #img.ball.top = (img.ball.top+5) % screenHeight
 
     tms = str(curse.x)+" , "+str(curse.y)
     txt.append(fnt[0].render(tms, True, (0,0,0)))
     txt.append(fnt[0].render(str(batDeg), True, (0,0,0)))
+
+
+
     # 表示
     img.dispBat(batGrip, batDeg) 
     img.dispBall(ballCenterPosition)
-    pygame.draw.line(screen, 'White', (batGrip.x, batGrip.y), (batEnd.x, batEnd.y)  ,5)
-    pygame.draw.circle(screen, 'Red', (ballCenterPosition.x, ballCenterPosition.y), ballRadius ,width = 3)
-    pygame.draw.circle(screen, 'Pink', (ballCenterPosition.x, ballCenterPosition.y), 2, width = 0)
+    #pygame.draw.line(screen, 'White', (batGrip.x, batGrip.y), (batEnd.x, batEnd.y)  ,5)
+    #pygame.draw.circle(screen, 'Red', (ballCenterPosition.x, ballCenterPosition.y), ballRadius ,width = 3)
     
     for i,t in enumerate(txt):
       screen.blit(t, [0,i*50])

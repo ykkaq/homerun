@@ -1,6 +1,6 @@
 from sansho import *
-from homerun import screenHeight
+import homerun
 
 def sample(p: coordinate):
-  p.y = (p.y + 5) % screenHeight
-	return 
+  p.y = (p.y + 5) % homerun.screenHeight
+  return p

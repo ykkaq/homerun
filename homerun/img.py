@@ -1,9 +1,8 @@
 # “Ç‚İ‚Ş‰æ‘œ‚ğ‚Ü‚Æ‚ß‚½py
 
 import pygame
-from homerun import screen,screenHeight
 from sansho import * 
-import moveBall
+from homerun import screen
 
 # ‰æ‘œ“Ç‚İ‚İ
 ground = pygame.image.load("pct/ground.png").convert()
@@ -28,9 +27,5 @@ def dispBat(batGrip: coordinate, angel):
   screen.blit(batRotate, batRect)
 
 def dispBall(ballCenter: coordinate):
-  ballCenter = moveBall.sample(ballCenter)
   ballRect = ball.get_rect(center = (ballCenter.x, ballCenter.y))
-  #ballRect.center = (ballCenter.x, ballCenter.y)
   screen.blit(ball, ballRect)
-  pygame.draw.rect(screen,(0,80,0),ballRect,1)
-  pygame.draw.circle(screen, 'orange', ballRect.center, 2, width = 0)
