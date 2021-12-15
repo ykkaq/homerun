@@ -35,9 +35,10 @@ def main():
   minBatDeg = -100
   maxBatDeg = 135
   batDeg = minBatDeg
+  battest = img.batSprite("/pct/bat/sport_baseball_bat_guide.png", 0, 0)
 
 
-  pygame.display.set_caption("テスト") #ウィンドウネーム指定
+  pygame.display.set_caption("プニキ") #ウィンドウネーム指定
   clock = pygame.time.Clock() #画面更新頻度
   
   pygame.mixer.init(frequency = 44100)    # 初期設定
@@ -61,6 +62,7 @@ def main():
     clock.tick(60)
     img.dispBase()
 
+    battest.draw(screen)
 
     for event in pygame.event.get():
       ## バツボタン

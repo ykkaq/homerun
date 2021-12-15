@@ -26,6 +26,20 @@ def dispBat(batGrip: coordinate, angel):
   batRect = batRotate.get_rect(center = (batGrip.x, batGrip.y))
   screen.blit(batRotate, batRect)
 
+
 def dispBall(ballCenter: coordinate):
   ballRect = ball.get_rect(center = (ballCenter.x, ballCenter.y))
   screen.blit(ball, ballRect)
+
+
+# バットのスイング
+class batSprite(pygame.sprite.Sprite):
+  def __init__ (self, filename , x, y):
+    pygame.sprite.Sprite.__init__(self)
+    self.image = pygame.load(filename).covert_aplha()
+    width = self.image.get_width()
+    height = self.image.get_height()
+    self.rect = Rect(x, y, width, height)
+
+  def draw(self, screen):
+    screen.blit(self.image, self.rect)
