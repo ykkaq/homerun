@@ -15,7 +15,7 @@ def crdSub(a: coordinate, b: coordinate):
 
 def rotate(theta):
   theta = np.radians(theta)
-  ret = np.matrix([
+  ret = np.array([
     [np.cos(theta), -1*np.sin(theta)],
     [np.sin(theta), np.cos(theta)]
   ])
@@ -23,7 +23,7 @@ def rotate(theta):
   return ret
 
 def crd2mat(a: coordinate):
-  return np.matrix([a.x , a.y])
+  return np.numpy([a.x , a.y])
 
-def mat2crd(m: np.matrix):
+def mat2crd(m: np.array):
   return coordinate(m[0,0], m[0,1])

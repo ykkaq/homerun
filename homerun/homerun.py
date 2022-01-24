@@ -13,56 +13,40 @@ import time
 import os
 from multiprocessing import Pool
 
+from data import screen
 import img
 import moveBall
 import collision
 from sansho import *
 
 
-# 初期化とか
-screenWidth = 1200 #画面横
-screenHeight = 900 #画面縦
-screen = pygame.display.set_mode((screenWidth,screenHeight))  #ウィンドウの大きさ指定
-
-
 def main():
-  pygame.init() #pygame初期化
+  pygameInit()
 
   ## 変数宣言
+  scene = 1
   curse = coordinate(500,650) #マウス座標
-  ballCenterPosition = coordinate(600,0) #ボール座標
-  mouseRightClick = False
-  minBatDeg = -100
-  maxBatDeg = 135
-  batDeg = minBatDeg
-  battest = img.batSprite("/pct/bat/sport_baseball_bat_guide.png", 0, 0)
-
-
-  pygame.display.set_caption("プニキ") #ウィンドウネーム指定
-  clock = pygame.time.Clock() #画面更新頻度
-  
-  pygame.mixer.init(frequency = 44100)    # 初期設定
-  pygame.mixer.music.load("bgm/main.mid")     # 音楽ファイルの読み込み
-  #pygame.mixer.music.play(-1)              # 音楽の再生回数(∞回)
-
-  #pygame.mouse.set_visible(False) # カーソル非表示（）
-  pygame.mouse.set_visible(True) 
   pygame.mouse.set_pos((curse.x,curse.y))  # カーソル初期位置
+  clock = pygame.time.Clock() #画面更新頻度
+  batSprite = img.batSprite(curse.x, curse.y)
+  hitPoint = 0
+  hitAngle = 0  
+  mouseRightClick = False
 
 
   ## while内使用変数
-  fnt = [pygame.font.Font(None, 50)] #　文字フォント
+  fnt = [pygame.font.Font(None, 50)] #　文il字フォント
   txt = []
-  thp = ""
-  thit = ""
+  hitFlag = False
+  nextScene = scene
+  print(scene, nextScene)
+  
 
   ## 画面更新
   while True:
     pygame.display.update()
     clock.tick(60)
-    img.dispBase()
-
-    battest.draw(screen)
+    img.dispInground()
 
     for event in pygame.event.get():
       ## バツボタン
@@ -71,9 +55,8 @@ def main():
         sys.exit()
       ## マウス右クリ
       if event.type == MOUSEBUTTONDOWN and event.button == 1:
-        tmc = fnt[0].render("Mouse Crick!", True, (0,0,0))
-        screen.blit(tmc, [0,0])
         mouseRightClick = True
+
       if event.type == MOUSEBUTTONUP and event.button == 1:
         mouseRightClick = False
 
@@ -85,65 +68,104 @@ def main():
         if event.key == K_ESCAPE:
           pygame.quit()
           sys.exit()
-
-
-    ## バット操作
-    batRotateSpeed = 20
-    if(mouseRightClick):
-      batDeg = batDeg + batRotateSpeed if batDeg < maxBatDeg else maxBatDeg
-    else:
-      batDeg = minBatDeg
-
-
-    ## 当たり判定
-    ### バット
-    batGrip = coordinate(curse.x, curse.y)
-    batEndPoint = coordinate(curse.x + img.batLeng, curse.y)
-    G2Evec = collision.generateVector(batEndPoint, batGrip)
-    G2ERotate = (rotate(-1*batDeg) * G2Evec.T)
-    batEnd = crd2mat(batGrip) + G2ERotate.T
-    batEnd = mat2crd(batEnd)
-
-    ### ボール
-    ballRadius = img.ball.get_width()/2
     
-
-    ### 当たり判定.main
-    if(collision.collision(ballCenterPosition, ballRadius, batGrip, batEnd)):
-      # バットに当たった位置
-      hitPoint = collision.hitPoint(ballCenterPosition, batGrip, batEnd)
-      thp = str(hitPoint)
-      time.sleep(0.5)
-      # 文字表示
-      thit = "HIT"
+    # 場面表示
+    if(scene == 0):
+      print('0')
+    elif(scene == 1):
+      hitPoint, hitAngle, hitFlag = inground(mouseRightClick, hitFlag , batSprite , curse)
+      nextScene = dispInground(hitFlag,  batSprite, curse)
+    elif(scene == 2):
+      dispOutground()
     else:
-      thit = ""
+      exit()
+        
+    scene = nextScene
 
-    txt.append(fnt[0].render(thp, True, (0,0,0)))
-    txt.append(fnt[0].render(thit, True, (0,0,0)))
+# pygame初期設定
+def pygameInit():
+  pygame.init() #pygame初期化
 
-    ## 座標変更
-    ### ボール
-    ballCenterPosition = moveBall.sample(ballCenterPosition)
-    #img.ball.top = (img.ball.top+5) % screenHeight
+  pygame.display.set_caption("プニキ") #ウィンドウネーム指定
+  
+  pygame.mixer.init(frequency = 44100)    # 初期設定
+  pygame.mixer.music.load("bgm/main.mid")     # 音楽ファイルの読み込み
+  #pygame.mixer.music.play(-1)              # 音楽の再生回数(∞回)
 
-    tms = str(curse.x)+" , "+str(curse.y)
-    txt.append(fnt[0].render(tms, True, (0,0,0)))
-    txt.append(fnt[0].render(str(batDeg), True, (0,0,0)))
+  #pygame.mouse.set_visible(False) # カーソル非表示（）
+  pygame.mouse.set_visible(True) 
 
 
+# 内野処理
+def inground(mouseRightClick, hitFlag,  batSprite, curse):
+  ball = moveBall.ball() #ボール
+  hitPoint = 0
+  hitAngle = 0
 
+  ## バットスイング操作
+  if(mouseRightClick):
+     batSprite.update()
+  else:
+     batSprite.reset()
+
+  ## 当たり判定
+  ### バット
+  batGripPoint = np.array([curse.x, curse.y, 0]) #バットグリップの座標
+  batEndPoint = np.array([curse.x + batSprite.width/2, curse.y, 0]) #バット先端の座標
+
+  ### ボール
+  ballRadius = (ball.width)/2
+
+  if( batSprite.index == 3 and collision.collision(moveBall.ballCenterPosition, ballRadius, batGripPoint, batEndPoint)):
+    hitFlag += True
+
+    # バットに当たった位置
+    hitPoint = collision.hitPoint(moveBall.ballCenterPosition, batGripPoint, batEndPoint)
+    # バットの当たった角度
+    hitAngle = collision.hitAngle(moveBall.ballCenterPosition, batGripPoint, batEndPoint)
+    time.sleep(0.5)
+
+    print(hitPoint, hitAngle)
+
+  else:
+    hitFlag += False
+
+  return hitPoint, hitAngle, hitFlag
+
+
+# 内野表示
+def dispInground(hitFlag,  batSprite, curse):
+  if(hitFlag): #打った後のシーン
+    img.dispBall()
+    batSprite.draw(screen, curse)
+    moveBall.hitBallHome()
+
+    # ボールがinground外にあるか
+    if(moveBall.outground()):
+      global scene
+      moveBall.ballCenterPosition[0] = screenWidth/2
+      moveBall.ballCenterPosition[1] = screenHeight/2
+      return 2
+
+
+  else:
+    # ボールの座標変更
+    moveBall.sample()
+    
     # 表示
-    img.dispBat(batGrip, batDeg) 
-    img.dispBall(ballCenterPosition)
-    #pygame.draw.line(screen, 'White', (batGrip.x, batGrip.y), (batEnd.x, batEnd.y)  ,5)
-    #pygame.draw.circle(screen, 'Red', (ballCenterPosition.x, ballCenterPosition.y), ballRadius ,width = 3)
-    
-    for i,t in enumerate(txt):
-      screen.blit(t, [0,i*50])
-    txt = []
+    img.dispBall()
+    batSprite.draw(screen, curse)
+  
+  return 1
+
+# 外野表示
+def dispOutground():
+  img.dispOutground()
 
 
+def pygameWhileSetting():
+  print('a')
+  
         
 if __name__ == "__main__":
     main()
