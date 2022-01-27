@@ -19,8 +19,8 @@ def collision(ballPoint: np.ndarray, circulRadius ,vecStart: np.ndarray, vecEnd:
   start2point = ballPoint - vecStart #"バットのグリップ"から"球の中心"へのベクトル
   end2point = ballPoint - vecEnd  #"バットの先"から"球の中心"へのベクトル
 
-  limitAngle_xy = np.radians(10)
-  limitAngle_xz = np.radians(10)
+  limitAngle_xy = np.radians(0)
+  limitAngle_xz = np.radians(0)
   
   normS2E = np.linalg.norm(start2end)
   normS2P = np.linalg.norm(start2point)
@@ -91,15 +91,18 @@ def hitPoint(point: np.ndarray ,vecStart: np.ndarray , vecEnd: np.ndarray):
   # s2pを,s2eとそれを90度回転させたベクトルの方向にわける
   solve = np.linalg.solve(baseVect, start2point.T)
   
-  return solve[0]
+  return solve[0], solve[1]
 
-
+  
 def hitAngle(ballCenterPoint: np.ndarray, vecStart: np.ndarray, vecEnd: np.ndarray):
   start2end = vecEnd - vecStart #バットの"グリップ"から"先"へのベクトル
   start2point = ballCenterPoint - vecStart #"バットのグリップ"から"球の中心"へのベクトル
 
+  # x,yベクトルのみにする
   S2E_xy = np.delete(start2end, 2)
   S2P_xy = np.delete(start2point, 2)
 
+  # angle = arccos(S2E_xy ・ S2P_xy / |S2E_xy| / |S2P_xy|)
   angle_xy = np.arccos( np.dot(S2E_xy, S2P_xy) / np.linalg.norm(S2E_xy) / np.linalg.norm(S2P_xy))
+
   return angle_xy

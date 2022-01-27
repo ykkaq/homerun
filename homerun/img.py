@@ -5,17 +5,19 @@ import pygame
 import math
 
 from sansho import * 
-from homerun import screen
+from data import screen
 
 # 画像読み込み
-## 内野
+## フィールド
 ground = pygame.image.load("pct/ground.png").convert_alpha()
+outground = pygame.image.load("pct/outground.png").convert_alpha()
 
 ## 投手
 pitcher = pygame.image.load("pct/baseball_pitcher_woman_fix.png").convert_alpha()
 pitcher = pygame.transform.smoothscale(pitcher, (122, 150)) #org
 
-outground = pygame.image.load("pct/outground.png").convert_alpha()
+bodyball = pygame.image.load("pct/ball/baseball_ball.png").convert_alpha()
+ballShadow = pygame.image.load("pct/ball/baseball_ball_shadow.png").convert_alpha()
 
 shadowDistance = 50
 
@@ -29,7 +31,6 @@ def dispInground():
 
 def dispOutground():
   screen.blit(outground,[0,0])
-  dispBall()
 
 '''
 def dispBall():
@@ -39,13 +40,6 @@ def dispBall():
   screen.blit(ball, ballRect)
   screen.blit(ballShadow, ballShadowRect)
 '''
-
-def dispBallOld():
-  # ボールの影の調整
-  ballRect = ball.get_rect(center = (ballCenterPosition[0], ballCenterPosition[1]))
-  ballShadowRect = ball.get_rect(center = (ballCenterPosition[0], ballCenterPosition[1] + shadowDistance))
-  screen.blit(ball, ballRect)
-  screen.blit(ballShadow, ballShadowRect)
 
 
 # バットのスイング
