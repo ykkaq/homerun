@@ -1,7 +1,6 @@
-# -*- coding: shift-jis -*-
+# -*- coding: utf-8 -*-
 
 import numpy as np
-from numpy.lib.function_base import angle
 
 from sansho import *
 import data
@@ -12,54 +11,48 @@ def generateVector(a: coordinate, b: coordinate):
   y = a.y - b.y
   return np.array([x, y])
 
-# “–‚½‚è”»’è
-def collision(ballPoint: np.ndarray, circulRadius ,vecStart: np.ndarray, vecEnd: np.ndarray):
-  # ƒxƒNƒgƒ‹¶¬
-  start2end = vecEnd - vecStart #ƒoƒbƒg‚Ì"ƒOƒŠƒbƒv"‚©‚ç"æ"‚Ö‚ÌƒxƒNƒgƒ‹
-  start2point = ballPoint - vecStart #"ƒoƒbƒg‚ÌƒOƒŠƒbƒv"‚©‚ç"‹…‚Ì’†S"‚Ö‚ÌƒxƒNƒgƒ‹
-  end2point = ballPoint - vecEnd  #"ƒoƒbƒg‚Ìæ"‚©‚ç"‹…‚Ì’†S"‚Ö‚ÌƒxƒNƒgƒ‹
-
-  limitAngle_xy = np.radians(0)
-  limitAngle_xz = np.radians(0)
-  
-  normS2E = np.linalg.norm(start2end)
-  normS2P = np.linalg.norm(start2point)
-
-  S2E_xy = np.delete(start2end, 2)
-  S2E_xz = np.delete(start2end, 1)
-  S2P_xy = np.delete(start2point, 2)
-  S2P_xz = np.delete(start2point, 1)
-
-  angle_xy = np.arccos( np.dot(S2E_xy, S2P_xy) / np.linalg.norm(S2E_xy) / np.linalg.norm(S2P_xy))
-  angle_xz = np.arccos( np.dot(S2E_xz, S2P_xz) / np.linalg.norm(S2E_xz) / np.linalg.norm(S2P_xz))
+# å½“ãŸã‚Šåˆ¤å®š
+def collision(ballPoint: np.ndarray, circulRadius, vecStart: np.ndarray, vecEnd: np.ndarray):
+  return hitDistance(ballPoint, vecStart, vecEnd) <= circulRadius
 
 
-  if(normS2E > normS2P and angle_xy < limitAngle_xy and angle_xz < limitAngle_xz):
-    return True
+def hitDistance(ballPoint: np.ndarray, vecStart: np.ndarray, vecEnd: np.ndarray):
+  segment = vecEnd - vecStart
+  point = ballPoint - vecStart
+  segmentLengthSquared = np.dot(segment, segment)
+
+  if segmentLengthSquared == 0:
+    return np.linalg.norm(point)
+
+  t = np.dot(point, segment) / segmentLengthSquared
+  t = np.clip(t, 0.0, 1.0)
+  closestPoint = vecStart + t * segment
+
+  return np.linalg.norm(ballPoint - closestPoint)
 
 '''
-  # ‰~‚Ì’†S‚Æü•ª‚ÌÅ’Z‹——£‚ğ“±o
-  unitS2E = start2end / np.linalg.norm(start2end) #ƒxƒNƒgƒ‹‚Ì’PˆÊ‰»
-  vec2point = np.linalg.norm(np.cross(unitS2E, start2point)) #‹…‚Ì’†S‚ÆƒoƒbƒgƒxƒNƒgƒ‹‚Ì‹——£
+  # å††ã®ä¸­å¿ƒã¨ç·šåˆ†ã®æœ€çŸ­è·é›¢ã‚’å°å‡º
+  unitS2E = start2end / np.linalg.norm(start2end) #ãƒ™ã‚¯ãƒˆãƒ«ã®å˜ä½åŒ–
+  vec2point = np.linalg.norm(np.cross(unitS2E, start2point)) #çƒã®ä¸­å¿ƒã¨ãƒãƒƒãƒˆãƒ™ã‚¯ãƒˆãƒ«ã®è·é›¢
   
-  #Å’Z‹——£‚Æ”¼Œa‚Ì”äŠr
+  #æœ€çŸ­è·é›¢ã¨åŠå¾„ã®æ¯”è¼ƒ
   if(vec2point > circulRadius):
     return False  
   else:
-    #ü•ªƒxƒNƒgƒ‹‚ÆCü•ª‚Ì—¼’[‚©‚ç‰~‚Ì’†SƒxƒNƒgƒ‹‚Ì“àÏ
+    #ç·šåˆ†ãƒ™ã‚¯ãƒˆãƒ«ã¨ï¼Œç·šåˆ†ã®ä¸¡ç«¯ã‹ã‚‰å††ã®ä¸­å¿ƒãƒ™ã‚¯ãƒˆãƒ«ã®å†…ç©
     dot1 = np.inner(unitS2E, start2point)
     dot2 = np.inner(unitS2E, end2point)
 
-    ## Šeƒmƒ‹ƒ€
+    ## å„ãƒãƒ«ãƒ 
     normS2E = np.linalg.norm(start2end)
     normS2P = np.linalg.norm(start2point)
     normE2P = np.linalg.norm(end2point)
 
-    ## ü•ªƒxƒNƒgƒ‹‚Æ—¼’[ƒxƒNƒgƒ‹‚ÌŠp“x
+    ## ç·šåˆ†ãƒ™ã‚¯ãƒˆãƒ«ã¨ä¸¡ç«¯ãƒ™ã‚¯ãƒˆãƒ«ã®è§’åº¦
     angle1 = np.arccos(dot1/normS2E/normS2P)
     angle2 = np.arccos(dot2/normS2E/normS2P)
 
-    #ŠeŠp“x‚Ì‰sŠp”»’è
+    #å„è§’åº¦ã®é‹­è§’åˆ¤å®š
     flag1 = True if np.degrees(angle1) < 90 else False
     flag2 = True if np.degrees(angle2) < 90 else False
     
@@ -75,34 +68,34 @@ def collision(ballPoint: np.ndarray, circulRadius ,vecStart: np.ndarray, vecEnd:
 '''
 
 
-# ƒ{[ƒ‹‚ªƒoƒbƒg‚É“–‚½‚Á‚½êŠ. return Š„‡D
+# ãƒœãƒ¼ãƒ«ãŒãƒãƒƒãƒˆã«å½“ãŸã£ãŸå ´æ‰€. return å‰²åˆï¼
 def hitPoint(point: np.ndarray ,vecStart: np.ndarray , vecEnd: np.ndarray):
-  # ƒxƒNƒgƒ‹¶¬
-  start2end = vecEnd - vecStart #ƒoƒbƒg‚Ì"ƒOƒŠƒbƒv"‚©‚ç"æ"‚Ö‚ÌƒxƒNƒgƒ‹
-  start2point = point - vecStart #"ƒoƒbƒg‚ÌƒOƒŠƒbƒv"‚©‚ç"‹…‚Ì’†S"‚Ö‚ÌƒxƒNƒgƒ‹
+  # ãƒ™ã‚¯ãƒˆãƒ«ç”Ÿæˆ
+  start2end = vecEnd - vecStart #ãƒãƒƒãƒˆã®"ã‚°ãƒªãƒƒãƒ—"ã‹ã‚‰"å…ˆ"ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
+  start2point = point - vecStart #"ãƒãƒƒãƒˆã®ã‚°ãƒªãƒƒãƒ—"ã‹ã‚‰"çƒã®ä¸­å¿ƒ"ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
 
-  # ŸŒ³’²®
+  # æ¬¡å…ƒèª¿æ•´
   start2end = np.delete(start2end, 2)
   start2point = np.delete(start2point, 2)
 
-  # s2e‚ğŠî€‚Æ‚µ‚½Šî’êƒxƒNƒgƒ‹‚Ì¶¬
+  # s2eã‚’åŸºæº–ã¨ã—ãŸåŸºåº•ãƒ™ã‚¯ãƒˆãƒ«ã®ç”Ÿæˆ
   baseVect = np.concatenate([np.matrix(start2end).T, rotate(90) @ np.matrix(start2end).T], 1) #2x2dim
 
-  # s2p‚ğ,s2e‚Æ‚»‚ê‚ğ90“x‰ñ“]‚³‚¹‚½ƒxƒNƒgƒ‹‚Ì•ûŒü‚É‚í‚¯‚é
+  # s2pã‚’,s2eã¨ãã‚Œã‚’90åº¦å›è»¢ã•ã›ãŸãƒ™ã‚¯ãƒˆãƒ«ã®æ–¹å‘ã«ã‚ã‘ã‚‹
   solve = np.linalg.solve(baseVect, start2point.T)
   
   return solve[0], solve[1]
 
   
 def hitAngle(ballCenterPoint: np.ndarray, vecStart: np.ndarray, vecEnd: np.ndarray):
-  start2end = vecEnd - vecStart #ƒoƒbƒg‚Ì"ƒOƒŠƒbƒv"‚©‚ç"æ"‚Ö‚ÌƒxƒNƒgƒ‹
-  start2point = ballCenterPoint - vecStart #"ƒoƒbƒg‚ÌƒOƒŠƒbƒv"‚©‚ç"‹…‚Ì’†S"‚Ö‚ÌƒxƒNƒgƒ‹
+  start2end = vecEnd - vecStart #ãƒãƒƒãƒˆã®"ã‚°ãƒªãƒƒãƒ—"ã‹ã‚‰"å…ˆ"ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
+  start2point = ballCenterPoint - vecStart #"ãƒãƒƒãƒˆã®ã‚°ãƒªãƒƒãƒ—"ã‹ã‚‰"çƒã®ä¸­å¿ƒ"ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
 
-  # x,yƒxƒNƒgƒ‹‚Ì‚İ‚É‚·‚é
+  # x,yãƒ™ã‚¯ãƒˆãƒ«ã®ã¿ã«ã™ã‚‹
   S2E_xy = np.delete(start2end, 2)
   S2P_xy = np.delete(start2point, 2)
 
-  # angle = arccos(S2E_xy E S2P_xy / |S2E_xy| / |S2P_xy|)
+  # angle = arccos(S2E_xy ãƒ» S2P_xy / |S2E_xy| / |S2P_xy|)
   angle_xy = np.arccos( np.dot(S2E_xy, S2P_xy) / np.linalg.norm(S2E_xy) / np.linalg.norm(S2P_xy))
 
   return angle_xy

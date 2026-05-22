@@ -1,5 +1,5 @@
-# -*- coding: shift-jis -*-
-# “Ç‚İ‚Ş‰æ‘œ‚ğ‚Ü‚Æ‚ß‚½py
+# -*- coding: utf-8 -*-
+# èª­ã¿è¾¼ã‚€ç”»åƒã‚’ã¾ã¨ã‚ãŸpy
 
 import pygame
 import math
@@ -7,12 +7,12 @@ import math
 from sansho import * 
 from data import screen
 
-# ‰æ‘œ“Ç‚İ‚İ
-## ƒtƒB[ƒ‹ƒh
+# ç”»åƒèª­ã¿è¾¼ã¿
+## ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
 ground = pygame.image.load("pct/ground.png").convert_alpha()
 outground = pygame.image.load("pct/outground.png").convert_alpha()
 
-## “Šè
+## æŠ•æ‰‹
 pitcher = pygame.image.load("pct/baseball_pitcher_woman_fix.png").convert_alpha()
 pitcher = pygame.transform.smoothscale(pitcher, (122, 150)) #org
 
@@ -21,7 +21,7 @@ ballShadow = pygame.image.load("pct/ball/baseball_ball_shadow.png").convert_alph
 
 shadowDistance = 50
 
-## memo: ƒoƒbƒg‚Í-135 to 45
+## memo: ãƒãƒƒãƒˆã¯-135 to 45
 
 
 def dispInground():
@@ -34,7 +34,7 @@ def dispOutground():
 
 '''
 def dispBall():
-  # ƒ{[ƒ‹‚Ì‰e‚Ì’²®
+  # ãƒœãƒ¼ãƒ«ã®å½±ã®èª¿æ•´
   ballRect = ball.get_rect(center = (ballCenterPosition[0], ballCenterPosition[1]))
   ballShadowRect = ball.get_rect(center = (ballCenterPosition[0], ballCenterPosition[1] + shadowDistance))
   screen.blit(ball, ballRect)
@@ -42,18 +42,18 @@ def dispBall():
 '''
 
 
-# ƒoƒbƒg‚ÌƒXƒCƒ“ƒO
+# ãƒãƒƒãƒˆã®ã‚¹ã‚¤ãƒ³ã‚°
 class batSprite(pygame.sprite.Sprite):
   def __init__ (self, x, y):
     pygame.sprite.Sprite.__init__(self)
-    picFile = "pct/bat/sport_baseball_bat_" #‰æ‘œƒtƒ@ƒCƒ‹ƒpƒX‚Ì‘f
+    picFile = "pct/bat/sport_baseball_bat_" #ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹ã®ç´ 
     self.imgScale = 0.3
 
-    self.images = list() #‰æ‘œƒŠƒXƒg
-    self.numOfImg = 5 #‰æ‘œ”
-    self.index = 0  #‰æ‘œindex
-    self.indexCount = 0 #‰æ‘œindexƒJƒEƒ“ƒg
-    self.divSwingSpeed = 3  #ƒoƒbƒg‚ÌƒXƒCƒ“ƒOƒXƒs[ƒhi1[frame] / divSwingSpeedj 
+    self.images = list() #ç”»åƒãƒªã‚¹ãƒˆ
+    self.numOfImg = 5 #ç”»åƒæ•°
+    self.index = 0  #ç”»åƒindex
+    self.indexCount = 0 #ç”»åƒindexã‚«ã‚¦ãƒ³ãƒˆ
+    self.divSwingSpeed = 3  #ãƒãƒƒãƒˆã®ã‚¹ã‚¤ãƒ³ã‚°ã‚¹ãƒ”ãƒ¼ãƒ‰ï¼ˆ1[frame] / divSwingSpeedï¼‰ 
     self.batShadow = pygame.image.load("pct/bat/sport_baseball_bat_shadow.png").convert_alpha()
     self.batShadow = pygame.transform.rotozoom(self.batShadow, 0, self.imgScale)
     self.batGuide = pygame.image.load("pct/bat/sport_baseball_bat_guide.png").convert_alpha()

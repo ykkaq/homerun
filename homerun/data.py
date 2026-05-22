@@ -1,14 +1,14 @@
-# -*- coding: shift-jis -*-
+# -*- coding: utf-8 -*-
 
 import pygame
 #import img
 
-# ‰Šú‰»‚Æ‚©
-screenWidth = 1200 #‰æ–Ê‰¡
-screenHeight = 900 #‰æ–Êc
-screen = pygame.display.set_mode((screenWidth,screenHeight))  #ƒEƒBƒ“ƒhƒE‚Ì‘å‚«‚³w’è
+# åˆæœŸåŒ–ã¨ã‹
+screenWidth = 1200 #ç”»é¢æ¨ª
+screenHeight = 900 #ç”»é¢ç¸¦
+screen = pygame.display.set_mode((screenWidth,screenHeight))  #ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¤§ãã•æŒ‡å®š
 
-#@‰¼
+#ã€€ä»®
 '''
 class ball():
   def __int__(self, img):
@@ -61,10 +61,10 @@ class ball():
     self.ballImg = pygame.transform.rotozoom(self.ballImg, 0, magnification)
 
 
-    # ‰æ‘œ‚ğ³•ûŒ`‚ÅŠÇ—
+    # ç”»åƒã‚’æ­£æ–¹å½¢ã§ç®¡ç†
     ballRect = self.ballImg.get_rect(center = (self.centerPosition[0], self.centerPosition[1]))
     ballShadowRect = self.ballImg.get_rect(center = (self.centerPosition[0], self.centerPosition[1] + self.shadowDistance))
-    # ‰æ‘œ•\¦
+    # ç”»åƒè¡¨ç¤º
     screen.blit(self.ballImg, ballRect)
     screen.blit(self.ballShadowImg, ballShadowRect)
 '''

@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
 
 '''
 作業メモ:12/8
@@ -12,6 +12,8 @@ import numpy as np
 import time
 import os
 from multiprocessing import Pool
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from data import *
 import img
@@ -31,9 +33,9 @@ def main():
   clock = pygame.time.Clock() #画面更新頻度
   batSprite = img.batSprite(curse.x, curse.y)
   ballClass = moveBall.ball(screenWidth/2, 50, 0)
-  flyballClass = moveBall.ball(screenWidth/2, screenHeight/2, 0) 
+  flyballClass = moveBall.ball(screenWidth/2, screenHeight/2, 0)
   hitPoint = 0
-  hitAngle = 0  
+  hitAngle = 0
   mouseRightClick = False
 
   ## while内使用変数
@@ -41,7 +43,7 @@ def main():
   txt = []
   throwFlag = True
   nextScene = scene
-  
+
 
   ## 画面更新
   while True:
@@ -56,7 +58,14 @@ def main():
         sys.exit()
       ## マウス右クリ
       if event.type == MOUSEBUTTONDOWN and event.button == 1:
-        mouseRightClick = True
+        if scene == 2 and ballClass.isLanded:
+          ballClass.resetPitch()
+          throwFlag = True
+          mouseRightClick = False
+          scene = 1
+          nextScene = 1
+        else:
+          mouseRightClick = True
 
       if event.type == MOUSEBUTTONUP and event.button == 1:
         mouseRightClick = False
@@ -69,7 +78,7 @@ def main():
         if event.key == K_ESCAPE:
           pygame.quit()
           sys.exit()
-    
+
     # 場面表示
     if(scene == 0):
       ## スタート画面
@@ -83,7 +92,7 @@ def main():
       dispOutground(ballClass, hitPoint, hitAngle)
     else:
       exit()
-        
+
     scene = nextScene
 
 
@@ -92,13 +101,13 @@ def pygameInit():
   pygame.init() #pygame初期化
 
   pygame.display.set_caption("プニキ") #ウィンドウネーム指定
-  
+
   pygame.mixer.init(frequency = 44100)    # 初期設定
   pygame.mixer.music.load("bgm/main.mid")     # 音楽ファイルの読み込み
   #pygame.mixer.music.play(-1)              # 音楽の再生回数(∞回)
 
   #pygame.mouse.set_visible(False) # カーソル非表示（）
-  pygame.mouse.set_visible(True) 
+  pygame.mouse.set_visible(True)
 
 # 内野処理
 def inground(mouseRightClick, batSprite, ballClass, curse, throwFlag):
@@ -118,16 +127,18 @@ def inground(mouseRightClick, batSprite, ballClass, curse, throwFlag):
 
   ### ボール
   ballRadius = (ballClass.width)/2
+  collisionRadius = ballRadius * 1.8
 
   ## バットにボールが当たったら
-  if(batSprite.index == 3 and collision.collision(ballClass.centerPosition, ballRadius, batGripPoint, batEndPoint)):
+  if(batSprite.index == 3 and collision.collision(ballClass.centerPosition, collisionRadius, batGripPoint, batEndPoint)):
     throwFlag *= False
 
     # バットに当たった位置
     hitPoint = collision.hitPoint(ballClass.centerPosition, batGripPoint, batEndPoint)
     # バットの当たった角度
     hitAngle = collision.hitAngle(ballClass.centerPosition, batGripPoint, batEndPoint)
-    time.sleep(0.5)
+    hitDistance = collision.hitDistance(ballClass.centerPosition, batGripPoint, batEndPoint)
+    ballClass.flightDistance = moveBall.flightDistance(hitDistance, collisionRadius)
 
   else:
     throwFlag *= True
@@ -139,7 +150,7 @@ def dispInground(throwFlag, batSprite, ballClass, curse):
   if(throwFlag): #投球シーン
     # ボールの座標変更
     ballClass.throwBall()
-    
+
     # 表示
     ballClass.dispBall()
     batSprite.draw(screen, curse)
@@ -152,20 +163,39 @@ def dispInground(throwFlag, batSprite, ballClass, curse):
   # ボールがinground外にあるか
   if(moveBall.outgroundFlag(ballClass)):
     global scene
-    ballClass.centerPosition[0] = screenWidth/2
-    ballClass.centerPosition[1] = screenHeight/2
+    ballClass.startOutground(ballClass.flightDistance)
     return 2
 
   return 1
 
 # 外野表示
-def dispOutground(ballClass):
+def dispOutground(ballClass, hitPoint=0, hitAngle=0):
   ## 外野背景表示
-  img.dispOutground()
+  screen.fill((42, 150, 72))
   ## 外野ボール処理
-  ballClass.ballOutground()
-  
+  landed = ballClass.ballOutground()
+  if landed:
+    drawResult(ballClass.flightDistance)
 
-        
+
+def judgeResult(flightDistance):
+  if flightDistance >= 100:
+    return "HOME RUN"
+  return "HIT"
+
+
+def drawResult(flightDistance):
+  font = pygame.font.Font(None, 64)
+  smallFont = pygame.font.Font(None, 44)
+  result = judgeResult(flightDistance)
+  resultText = font.render(result, True, (255, 255, 255))
+  distanceText = smallFont.render("Distance: " + str(round(flightDistance, 1)) + " m", True, (255, 255, 255))
+  continueText = smallFont.render("Click continue", True, (255, 255, 255))
+  screen.blit(resultText, resultText.get_rect(center=(screenWidth/2, 120)))
+  screen.blit(distanceText, distanceText.get_rect(center=(screenWidth/2, 180)))
+  screen.blit(continueText, continueText.get_rect(center=(screenWidth/2, 230)))
+
+
+
 if __name__ == "__main__":
     main()

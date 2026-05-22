@@ -1,7 +1,8 @@
-# memo:ƒtƒ@ƒCƒ‹–¼‚Í‰¼DŒã‚Å•ÏX‚·‚éD
+# -*- coding: utf-8 -*-
+# memo:ãƒ•ã‚¡ã‚¤ãƒ«åã¯ä»®ï¼å¾Œã§å¤‰æ›´ã™ã‚‹ï¼
 import numpy as np
 
-# À•WƒNƒ‰ƒX
+# åº§æ¨™ã‚¯ãƒ©ã‚¹
 class coordinate:
   def __init__(self,x,y):
     self.x = x
